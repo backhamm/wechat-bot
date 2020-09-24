@@ -1,4 +1,4 @@
-# 名冠微信好友转移BOT
+# 微信好友转移BOT
 
 > An electron-vue project
 
