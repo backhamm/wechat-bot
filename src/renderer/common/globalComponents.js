@@ -1,12 +1,15 @@
 import Vue from 'vue'
-import vHeader from './VHeader'
+import VHeader from './VHeader'
 import Breathing from './Breathing'
-import { Button, Input, Select, Option, Progress, Dropdown, DropdownMenu, DropdownItem, Dialog, InputNumber, Checkbox, Message, Loading } from 'element-ui'
+import { Button, Input, Select, Option, Progress, Dropdown, DropdownMenu, DropdownItem, Dialog, InputNumber, Checkbox, Message, Loading, MessageBox } from 'element-ui'
+
+export const MyLoading = Loading
 
 const elList = [Button, Input, Select, Option, Progress, Dropdown, DropdownMenu, DropdownItem, Dialog, InputNumber, Checkbox]
 
-const componentList = [vHeader, Breathing, ...elList]
+const componentList = [VHeader, Breathing, ...elList]
 
+Vue.prototype.$confirm = MessageBox.confirm
 Vue.prototype.$message = Message
 Vue.prototype.$ELEMENT = { size: 'small', zIndex: 3000 }
 Vue.use(Loading.directive)

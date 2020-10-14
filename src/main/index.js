@@ -19,6 +19,7 @@ function createWindow () {
    * Initial window options
    */
   mainWindow = new BrowserWindow({
+    icon: './src/project.ico',
     width: 860,
     height: 600,
     minWidth: 860,

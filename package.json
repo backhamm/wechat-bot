@@ -19,7 +19,7 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
-    "productName": "名冠微信好友转移BOT",
+    "productName": "uibot",
     "appId": "com.example.yourapp",
     "directories": {
       "output": "build"

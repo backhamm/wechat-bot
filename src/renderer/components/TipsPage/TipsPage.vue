@@ -2,16 +2,54 @@
   <div class="tips-page">
     <breathing />
     <p class="title">初始化说明</p>
+    <p class="title-tips">(在你操作该工具前，请确保已完成以下外部操作)</p>
     <div class="tips-container enter-fade">
-      <div class="item" v-for="item of tipsList" :key="item.title">
-        <p class="item-title">{{item.title}}<span class="item-tips">{{item.titleTips}}</span></p>
-        <div class="item-main">
-          <p class="list-item" v-for="el of item.list" :key="el">{{el}}</p>
+      <div class="header">
+        <div class="step">
+          <span v-for="i of 4" :key="i" class="num" :class="{'active': currentStep === i}">{{ i }}</span>
+        </div>
+        <div class="step-text">
+          <span v-for="i of ['安装微信客户端', '显示设置', '登录企业微信', '完成']" :key="i" class="text-item">{{ i }}</span>
         </div>
       </div>
+      <div class="main">
+        <div v-if="currentStep === 1" class="step-1">
+          <p class="step-1-title">点击下方"安装电脑版微信"，手动完成安装，<span style="color: #F5AC40">安装后不启动微信；</span></p>
+          <p>（若已安装其他版本，仍需要安装覆盖原版本）</p>
+          <div class="install-wx" @click="$socket.emit('set_wx')">安装电脑端微信（V2.6.8.52）</div>
+          <p>已安装此版本后可忽略</p>
+        </div>
+        <div v-else-if="currentStep === 2" class="step-2">
+          <div class="left">
+            <p class="left-title">win7设置方法</p>
+            <p>桌面>右键>个性化>显示，将缩放与布局调整成100%</p>
+            <p class="left-title" style="margin-top: 48px">win10设置方法</p>
+            <p>桌面>右键>显示设置，将缩放与布局调整成100%</p>
+          </div>
+          <div class="right" @mouseleave="showBigImg = false">
+            <img width="168px" src="@/assets/win7-set.png" @mouseenter="showBigFun(7)" title="单击查看大图" alt="">
+            <img width="168px" src="@/assets/win10-set.png" @mouseenter="showBigFun(10)" title="单击查看大图" alt="">
+            <transition name="show">
+              <img v-if="showBigImg" class="big-img" :src="bigImg" alt="">
+            </transition>
+          </div>
+        </div>
+        <div v-else-if="currentStep === 3" class="step-3"></div>
+        <div v-else class="step-4"></div>
+      </div>
       <div class="footer">
-        <el-checkbox v-model="checked">已清楚，不再提示</el-checkbox>
-        <el-button style="width: 107px;margin-top: -6px" @click="understood" type="primary">知道了</el-button>
+        <div v-if="currentStep === 1">
+          <el-button class="gray-btn w-156" @click="$router.push('/Login')">跳过</el-button>
+          <el-button class="blue-btn w-156" @click="currentStep++" type="primary">下一步</el-button>
+        </div>
+        <div class="step-layout" v-else>
+          <el-button type="text" style="color: #333" @click="$router.push('/Login')">跳过</el-button>
+          <div>
+            <el-button class="gray-btn w-96" type="text" @click="currentStep--">上一步</el-button>
+            <el-button v-if="currentStep !== 4" class="blue-btn w-96" @click="currentStep++" type="primary">下一步</el-button>
+            <el-button v-else class="blue-btn w-96" @click="understood" type="primary">完成</el-button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -22,19 +60,10 @@ export default {
   name: "TipsPage",
   data() {
     return {
-      tipsList: [
-        {
-          title: '初始化引导',
-          titleTips: '(在你操作该工具前，请确保已完成以下外部操作)',
-          list: ['1、在电脑上安装本软件给定的微信客户端（安装后不打开）；', '2、在电脑上安装企业微信客户端，需打开并登录（登录与“需要转移好友的微信”互为好友的企业微信）；']
-        },
-        {
-          title: '操作步骤',
-          titleTips: '(完成以上操作，在本软件中执行一下步骤)',
-          list: ['1、点击“登录微信”，完成扫码登录；', '2、登录成功后，点击“统一发送好友名片至企业微信”；', '3、打开企业微信，对需要发送名片的微信发送“开始”，系统开始自动操作；', '4、等待以上操作完成，即可完成统一发送添加邀请；']
-        }
-      ],
-      checked: localStorage.getItem('showTips')
+      checked: sessionStorage.getItem('showTips'),
+      currentStep: 1,
+      showBigImg: false,
+      bigImg: null
     }
   },
   created() {
@@ -42,8 +71,12 @@ export default {
   },
   methods: {
     understood() {
-      localStorage.setItem('showTips', this.checked > 0 ? '1' : '0')
+      sessionStorage.setItem('showTips', this.checked > 0 ? '1' : '0')
       this.$router.push('/Login')
+    },
+    showBigFun(type) {
+      this.showBigImg = true
+      this.bigImg = require(`../../assets/win${type}-set-big.png`)
     }
   }
 }
@@ -56,7 +89,6 @@ export default {
     background: url("../../assets/verification-bg.jpg") no-repeat top center/ 100% 345px;
 
     .title {
-      margin-bottom: 20px;
       line-height: 40px;
       text-align: center;
       font-size: 24px;
@@ -64,46 +96,180 @@ export default {
       color: #fff;
     }
 
+    .title-tips {
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 14px;
+      color: #C0C6CC;
+    }
+
     .tips-container {
-      width: 568px;
+      width: 567px;
       height: 439px;
       margin: 0 auto;
-      padding: 20px 22px 0;
       box-shadow: 0 5px 10px rgba(0, 0, 0, 0.19);
-      background: #fff;
       color: #303233;
 
-      .item {
-        font-size: 14px;
+      .header {
+        height: 113px;
+        padding: 36px 44px 0;
+        border-radius: 8px 8px 0 0;
+        background: #00164E url("../../assets/wave.png") no-repeat bottom center / 100% 74px;
 
-        .item-tips {
-          margin-left: 10px;
-          font-weight: normal;
-          color: #C0C6CC;
+        .step {
+          position: relative;
+          display: flex;
+          justify-content: space-around;
+
+          &:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 2px;
+            background: #0078EF;
+          }
+
+          .num {
+            position: relative;
+            z-index: 1;
+            width: 22px;
+            line-height: 20px;
+            border: 1px solid #0078EF;
+            text-align: center;
+            border-radius: 50%;
+            background: #00164E;
+            color: #0078EF;
+
+            &.active {
+              background: #0078EF;
+              color: #fff;
+              transition: all .3s;
+            }
+          }
         }
 
-        .item-title {
-          line-height: 44px;
-          font-weight: bold;
-        }
+        .step-text {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 10px;
 
-        .item-main {
-          padding: 16px;
-          line-height: 1.5;
-          background: #F8F8FA;
-          border-radius: 5px;
-          border: 1px solid #EBEBEB;
-
-          .list-item:not(:last-child) {
-            margin-bottom: 10px;
+          .text-item {
+            flex: 1;
+            text-align: center;
+            font-size: 12px;
+            color: #fff;
           }
         }
       }
 
+      .main {
+        height: calc(439px - 113px - 76px);
+        font-size: 14px;
+        text-align: center;
+        background: #fff;
+
+        .step-1 {
+          padding: 40px 70px 0;
+          color: #666;
+
+          .step-1-title {
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #000;
+          }
+
+          .install-wx {
+            margin: 47px 0 16px;
+            line-height: 48px;
+            border: 1px solid #0046D1;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #0046D1;
+          }
+        }
+
+        .step-2 {
+          display: flex;
+          justify-content: space-between;
+          height: 100%;
+          padding: 0 35px;
+          text-align: left;
+
+          .left {
+            width: 249px;
+            padding-top: 33px;
+
+            .left-title {
+              margin-bottom: 10px;
+              font-weight: bold;
+            }
+          }
+
+          .right {
+            width: 168px;
+            padding-top: 11px;
+
+            .big-img {
+              position: fixed;
+              z-index: 99;
+              top: 5%;
+              left: 5%;
+              width: 90%;
+              height: 90%;
+              transform-origin: top;
+              transform: perspective(700px) rotateX(0);
+              transition: all .3s;
+
+              &.show-enter, &.show-leave-to {
+                transform: rotateX(40deg);
+                opacity: 0;
+              }
+            }
+          }
+        }
+
+        .step-3 {
+          height: 100%;
+          background: url("../../assets/step3-bg.png") no-repeat top center / 100% 100%;
+        }
+
+        .step-4 {
+          height: 100%;
+          background: url("../../assets/step4-bg.png") no-repeat top center / 100% 100%;
+        }
+      }
+
       .footer {
-        display: flex;
-        justify-content: space-between;
-        padding-top: 30px;
+        height: 76px;
+        padding: 20px 40px 0;
+        border-top: 1px solid #DBDBDB;
+        text-align: center;
+        border-radius: 0 0 8px 8px;
+        background: #fff;
+
+        .w-96 {
+          width: 96px;
+        }
+
+        .w-156 {
+          width: 156px;
+        }
+
+        .gray-btn {
+          background: #E6E6E6;
+          color: #333;
+        }
+
+        .blue-btn {
+          background: #0046D1;
+        }
+
+        .step-layout {
+          display: flex;
+          justify-content: space-between;
+        }
       }
     }
   }

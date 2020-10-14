@@ -1,5 +1,5 @@
 <template>
-  <div class="directory" v-loading="!userList.length">
+  <div class="directory">
     <div class="left">
       <p class="left-title">通讯列表（<span style="color: #0078EF">{{ userList.length }}</span>人）</p>
       <div class="left-item" v-for="(item, i) of userList" :key="i">
@@ -8,24 +8,25 @@
       </div>
     </div>
     <div class="right">
-      <div v-if="!firstEnd">
-        <div class="operating-tips" v-if="showOperatingTips">
-          <p class="operating-ready"><img style="margin-right: 5px; vertical-align: sub" src="@/assets/begin.png" alt="">程序准备中...</p>
-          请在企业微信里，给<span style="font-weight: bold">【需要转移好友的微信】发送“开始”</span>（必须是本电脑当前登录的个人微信）
+      <div class="operating-tips" v-if="showOperatingTips">
+        <p class="operating-ready"><img style="margin-right: 5px; vertical-align: sub" src="@/assets/begin.png" alt="">程序准备中...</p>
+        请在企业微信里，给<span style="font-weight: bold">【需要转移好友的微信】发送“开始”</span>（必须是本电脑当前登录的个人微信）
+      </div>
+      <template v-else>
+        <div v-if="!firstEnd">
+          <div>
+            <img width="240" src="@/assets/directory.svg" alt="">
+            <p class="begin-tips">请打开并登录企业微信方可执行以下操作</p>
+          </div>
+          <el-button @click="readySend(false)" type="primary" :disabled="!userList.length || isSending" size="medium" round>统一发送好友名片至企业微信</el-button>
         </div>
         <div v-else>
-          <img width="240" src="@/assets/directory.svg" alt="">
-          <p class="begin-tips">请打开并登录企业微信方可执行以下操作</p>
+          <div class="tips">已添加<span style="color: #0078EF">{{ userList.length - maxPeople }}</span>人，剩余<span style="font-weight: bold">{{ maxPeople }}</span>人</div>
+          <el-button class="btn" @click="readySend(false)" type="primary" size="medium" round :disabled="!userList.length || isSending">继续添加剩余好友</el-button>
+          <br>
+          <el-button class="btn" @click="readySend(true)" style="margin-top: 16px;" type="primary" size="medium" plain round :disabled="!userList.length || isSending">重新添加</el-button>
         </div>
-        <el-button v-if="!showOperatingTips" @click="readySend(false)" type="primary" :disabled="!userList.length || isSending" size="medium" round>统一发送好友名片至企业微信</el-button>
-<!--        <el-button @click="paramsVisible = true" type="primary" :disabled="!userList.length || isSending" size="medium" plain round>统一发送好友名片至企业微信</el-button>-->
-      </div>
-      <div v-else>
-        <div class="tips">已添加<span style="color: #0078EF">{{ completedNum }}</span>人，剩余<span style="font-weight: bold">{{ maxPeople - completedNum }}</span>人</div>
-        <el-button class="btn" @click="readySend(false)" type="primary" size="medium" round :disabled="!userList.length || isSending">继续添加剩余好友</el-button>
-        <br>
-        <el-button class="btn" @click="readySend(true)" style="margin-top: 16px;" type="primary" size="medium" plain round :disabled="!userList.length || isSending">重新添加</el-button>
-      </div>
+      </template>
     </div>
     <el-dialog class="params-log" title="参数设置" :visible.sync="paramsVisible" width="480px">
       <div>
@@ -39,11 +40,11 @@
         <div class="log-input">
           添加频率：
           <el-select style="width: 160px" v-model="params.second" placeholder="请选择">
-            <el-option label="3秒" :value="3"></el-option>
             <el-option label="4秒" :value="4"></el-option>
             <el-option label="5秒" :value="5"></el-option>
+            <el-option label="6秒" :value="6"></el-option>
           </el-select>
-          <p class="input-tips">建议频率3秒</p>
+          <p class="input-tips">建议频率4秒</p>
         </div>
       </div>
       <span slot="footer" class="dialog-footer">
@@ -55,14 +56,15 @@
 </template>
 
 <script>
-import {mapState, mapActions} from 'vuex'
+import {mapActions} from 'vuex'
 import {createMiniWindow, miniWindow} from "../../utils/miniWindow"
-// import {miniWindow} from "../../utils/miniWindow"
+import {MyLoading} from "../../common/globalComponents"
 
 export default {
   name: "Directory",
   data() {
     return {
+      loadUserList: false,
       paramsVisible: false,
       isSending: false,
       firstEnd: false,
@@ -72,45 +74,52 @@ export default {
       maxPeople: null,
       params: {
         peopleNum: 5,
-        second: 3
+        second: 4
       },
       // userList: ['安居客--王总', '安居客-sssssssssssssssss-王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总', '安居客--王总'],
       userList: [],
       sendType: 0
     }
   },
-  computed: mapState(['completedNum']),
   sockets: {
     userList({data}) {
-      Array.isArray(data) && (this.userList = data)
+      if (Array.isArray(data)) {
+        this.userList = data
+        this.loadUserList.close()
+      }
     },
     workLog({cmd, msg, data}) {
       if (cmd) {
         this.maxPeople = this.isReset ? this.userList.length : data.len
-        this.paramsVisible = true
       } else {
         this.$message.error(msg)
       }
     },
     addPeople({data}) {
-      console.log(data)
-      !miniWindow && createMiniWindow(JSON.stringify(this.params))
+      // !miniWindow && createMiniWindow(JSON.stringify(this.params))
       this.setCompletedNum(data.execute)
     },
     sendEnd() {
-      console.log('end')
       this.isSending = false
       this.firstEnd = true
-      miniWindow.close()
+      this.showOperatingTips = false
+      this.$socket.emit('work_log')
+      setTimeout(() => {
+        miniWindow.close()
+      }, 2000)
     }
   },
-  // mounted() {
-  //   console.log(this.sockets)
-  // },
+  mounted() {
+    !this.userList.length && (this.loadUserList = MyLoading.service({
+      target: '.directory',
+      text: '好友加载中，请稍后...'
+    }))
+  },
   methods: {
     ...mapActions(['setCompletedNum']),
     readySend(reset) {
       this.setCompletedNum(0)
+      this.paramsVisible = true
       this.isReset = reset
       this.$socket.emit('work_log')
     },
@@ -120,6 +129,7 @@ export default {
       this.$socket.emit('run_log', JSON.stringify(this.params))
       this.paramsVisible = false
       this.showOperatingTips = true
+      createMiniWindow(JSON.stringify(this.params))
     }
   }
 }
@@ -186,7 +196,7 @@ export default {
     width: 192px;
     height: 100%;
     overflow: auto;
-    background: #F2F3F5;
+    background: #fff;
 
     .left-title {
       padding-left: 16px;

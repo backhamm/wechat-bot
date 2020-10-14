@@ -2,9 +2,12 @@
   <div id="app">
     <v-header />
     <router-view></router-view>
-    <div class="qr-code">
-      <img width="14" src="@/assets/qr-code-small.png" alt="">
-      联系客服
+    <div class="qr-code" :style="{right: showQrCode ? 0 : '-100px'}" @mouseenter="showQrCode = true" @mouseleave="showQrCode = false">
+      <div class="pack-up">
+        <img width="14" src="@/assets/qr-code-small.png" alt="">
+        联系客服
+      </div>
+      <img width="90" src="@/assets/qr-code.jpg" alt="">
     </div>
   </div>
 </template>
@@ -16,7 +19,8 @@
     name: 'App',
     data() {
       return {
-        showHeader: true
+        showHeader: true,
+        showQrCode: false
       }
     },
     beforeDestroy() {
@@ -36,9 +40,11 @@
   body, html {
     width: 100%;
     height: 100%;
+    overflow: hidden;
   }
 
   #app {
+    width: 100%;
     height: 100%;
     overflow: hidden;
     background: #F5F9FD;
@@ -47,26 +53,35 @@
       position: absolute;
       right: 0;
       bottom: 30px;
-      width: 32px;
-      padding: 10px 9px;
-      text-align: center;
+      width: 132px;
       font-size: 14px;
       border-radius: 4px 0 0 4px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
+      background: #fff;
       color: #6A6A6A;
       cursor: pointer;
+      transition: all .3s;
+
+      .pack-up {
+        display: inline-block;
+        width: 32px;
+        padding: 10px 9px;
+      }
     }
   }
+
   @keyframes enterFade {
     from {
       opacity: 0;
       transform: translateX(50px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
     }
   }
+
   .enter-fade {
     animation: enterFade .8s;
   }

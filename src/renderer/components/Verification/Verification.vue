@@ -15,8 +15,7 @@
           <span class="copy" slot="suffix" @click="copy">复制</span>
         </el-input>
         <p class="input-title">软件密钥</p>
-        <el-input class="input-input" v-model="key" placeholder="请输入软件密钥码"></el-input>
-<!--        <el-button style="width: 100%;" type="primary" size="medium" @click="$router.push('/TipsPage')">确定</el-button>-->
+        <el-input @contextmenu.native="stickFun" class="input-input" v-model="key" placeholder="请输入软件密钥码"></el-input>
         <el-button style="width: 100%;" type="primary" size="medium" @click="checkKey">确定</el-button>
       </div>
     </div>
@@ -25,6 +24,7 @@
 
 <script>
 import {copy} from "../../utils/copy"
+import {clipboard} from 'electron'
 
 export default {
   name: "Verification",
@@ -50,7 +50,12 @@ export default {
       }
     },
     checkKey({cmd}) {
-      cmd && this.$router.push('/TipsPage')
+      if (cmd) {
+        this.$message.success('密钥验证成功！')
+        this.$router.push('/TipsPage')
+      } else {
+        this.$message.error('密钥验证失败！')
+      }
     }
   },
   created() {
@@ -62,6 +67,9 @@ export default {
     },
     checkKey() {
       this.key.trim() && this.$socket.emit('check_key', this.key)
+    },
+    stickFun() {
+      this.key = clipboard.readText()
     }
   }
 }

@@ -11,8 +11,8 @@
       <span slot="title"><img class="title-icon" src="@/assets/warning-tips.png" alt="">操作提示</span>
       <span>系统检查到你微信已经打开，<span style="font-weight: bold">请彻底关闭微信</span>后，再通过本软件“登录微信”</span>
       <span slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="showDialog = false">知 道 了</el-button>
-    </span>
+        <el-button type="primary" @click="showDialog = false">知 道 了</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -37,12 +37,13 @@ export default {
       }
     }
   },
-  mounted() {
-    this.$route.query.type === 'change' && this.login()
-  },
+  // mounted() {
+  //   this.$route.query.type === 'change' && this.login()
+  // },
   methods: {
     login() {
       this.isLoading = true
+      this.$socket.emit('init_data')
       this.$socket.emit('login')
       // this.$router.push('/Directory')
     }
